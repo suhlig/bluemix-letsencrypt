@@ -25,7 +25,7 @@ Firstly you must have the [Bluemix CLI](https://console.bluemix.net/docs/cli/ref
 Once ready:
 
 1. download/clone this repo
-2. install the requests package (e.g. pip install requests)
+2. install the requests and pyyaml packages (e.g. `pip install requests pyyaml`)
 3. rename domains.yml.example to domains.yml
 4. enter your email address (e.g. for certificate renewal reminders)
 5. enter your custom domain name and its corresponding hostnames
