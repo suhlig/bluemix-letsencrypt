@@ -49,7 +49,7 @@ def check_ssl(full_host):
         return False
 
 # Begin Script
-with open('domains.yml') as data_file:
+with open('domains.json') as data_file:
     settings = yaml.safe_load(data_file)
 
 with open('manifest.yml') as manifest_file:

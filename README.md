@@ -20,13 +20,13 @@ OPTIONS:
    --path           Path for the route
 ```
 
-Firstly you must have the [Bluemix CLI](https://console.bluemix.net/docs/cli/reference/bluemix_cli/get_started.html) installed, custom domains created, DNS configured, and set your target of choice.
+Firstly you must have the [Bluemix CLI](https://console.bluemix.net/docs/cli/reference/bluemix_cli/get_started.html) installed, custom domains created, DNS configured, and know your cloud foundry org and space.
 
 Once ready:
 
 1. download/clone this repo
 2. install the requests and pyyaml packages (e.g. `pip install requests pyyaml`)
-3. rename domains.yml.example to domains.yml
+3. rename domains.json.example to domains.json
 4. enter your email address (e.g. for certificate renewal reminders)
 5. enter your custom domain name and its corresponding hostnames
 
@@ -34,7 +34,7 @@ Each [host].[domain] combination will become a separate DNS name in the SAN fiel
 
 Note: During testing, please set `staging` to `true` in order to keep load off the production Let's Encrypt environment and reduce the chance of hitting their rate limits (https://letsencrypt.org/docs/staging-environment/).
 
-Finally, run `python setup-app.py` to
+Next, log in to Bluemix (e.g. `bx login`), set your target org and space, and finally run `python setup-app.py` to:
 
 1. push the cf-letsencrypt application
 2. map the routes needed for Let's Encrypt to verify that you own the domain
