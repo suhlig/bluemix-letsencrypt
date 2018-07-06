@@ -1,7 +1,7 @@
 applications:
   - name: letsencrypt
     buildpack: python_buildpack
-    memory: 64M
+    memory: 128M
     instances: 1
     no-hostname: true
     no-route: true
