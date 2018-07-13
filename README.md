@@ -25,16 +25,17 @@ Firstly you must have the [Bluemix CLI](https://console.bluemix.net/docs/cli/ref
 Once ready:
 
 1. download/clone this repo
-2. install the requests and pyyaml packages (e.g. `pip install requests pyyaml`)
-3. rename domains.json.example to domains.json
-4. enter your email address (e.g. for certificate renewal reminders)
-5. enter your custom domain name and its corresponding hostnames
+2. Make sure you're running Python 3.x - this script will not work with Python 2.x
+3. install the requests and pyyaml packages (e.g. `pip install requests pyyaml`)
+4. rename domains.json.example to domains.json
+5. enter your email address (e.g. for certificate renewal reminders)
+6. enter your custom domain name and its corresponding hostnames
 
 Each [host].[domain] combination will become a separate DNS name in the SAN field of the requested certificate. Set the first host value to '.' to set the Subject Common Name to the name of the domain.
 
 Note: During testing, please set `staging` to `true` in order to keep load off the production Let's Encrypt environment and reduce the chance of hitting their rate limits (https://letsencrypt.org/docs/staging-environment/).
 
-Next, log in to Bluemix (e.g. `bx login`), set your target org and space, and finally run `python setup-app.py` to:
+Next, log in to Bluemix (e.g. `bx login`), set your target org and space, and finally run `python3 setup-app.py` (If you are running Windows, it might be `python setup-app.py`) to:
 
 1. push the cf-letsencrypt application
 2. map the routes needed for Let's Encrypt to verify that you own the domain

@@ -3,8 +3,8 @@ import os
 import sys
 import time
 import threading
-import SimpleHTTPServer
-import SocketServer
+from http.server import SimpleHTTPRequestHandler 
+import socketserver
 from letsencrypt import main as cli
 
 cwd = os.getcwd()
@@ -45,8 +45,8 @@ print("Args: ", args)
 
 os.chdir('host')
 
-Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
-httpd = SocketServer.TCPServer(("", port), Handler)
+Handler = SimpleHTTPRequestHandler
+httpd = socketserver.TCPServer(("", port), Handler)
 
 # Start a thread with the server
 server_thread = threading.Thread(target=httpd.serve_forever)
