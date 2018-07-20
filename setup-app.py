@@ -1,4 +1,5 @@
 import requests
+import json
 import yaml
 from subprocess import call, check_call, Popen, PIPE
 import sys
@@ -50,7 +51,7 @@ def check_ssl(full_host):
 
 # Begin Script
 with open('domains.json') as data_file:
-    settings = yaml.safe_load(data_file)
+    settings = json.load(data_file)
 
 with open('manifest.yml') as manifest_file:
     manifest = yaml.safe_load(manifest_file)
