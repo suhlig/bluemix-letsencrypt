@@ -117,6 +117,9 @@ domain_with_first_host = "%s.%s" % (settings['domains'][0]['hosts'][0],
 if domain_with_first_host.startswith('..'):
     domain_with_first_host = domain_with_first_host[2:]
 
+print("\nWaiting for container to mount filesystem")
+time.sleep(5)
+
 cert1Proc = get_cert(appname, domain_with_first_host, 'cert.pem')
 cert2Proc = get_cert(appname, domain_with_first_host, 'chain.pem')
 cert3Proc = get_cert(appname, domain_with_first_host, 'fullchain.pem')
