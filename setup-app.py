@@ -16,7 +16,7 @@ def domain_has_ssl(domain, full_host, print_info=False):
     The print_info parameter can be used to dump the certificate information
     from Bluemix to stdout.
     """
-    pipe = Popen("bx app domain-cert %s" % domain,
+    pipe = Popen("ibmcloud app domain-cert %s" % domain,
                  stdout=PIPE, shell=True)
     output = pipe.stdout.read().decode("unicode_escape")
     cert_exists = "OK" in output
@@ -25,12 +25,12 @@ def domain_has_ssl(domain, full_host, print_info=False):
     return cert_exists or check_ssl(full_host)
 
 def get_cert(appname, domain, certname):
-    """get_cert wraps the `bx cf ssh` command to retrieve the literal file
+    """get_cert wraps the `ibmcloud cf ssh` command to retrieve the literal file
     contents of the certificate that was requested.
     It then writes the certificate to a file in the current working
     directory with the same name that the certificate had on the server.
     """
-    command = "bx --quiet cf ssh %s -c \"cat ~/app/conf/live/%s/%s\"" % (appname, domain, certname)
+    command = "ibmcloud --quiet cf ssh %s -c \"cat ~/app/conf/live/%s/%s\"" % (appname, domain, certname)
     print("Running: %s" % command)
     certfile = open(certname,"w+")
     return Popen(command, shell=True, stdout=certfile)
@@ -60,10 +60,10 @@ appname = manifest['applications'][0]['name']
 
 #consider deleting the app if you've already pushed it with recent success
 #otherwise the script can get confused by those success messages in the logs
-#call(["bx", "cf", "delete", appname])
+#call(["ibmcloud", "cf", "delete", appname])
 
 # Push the app, but don't start it yet
-check_call(["bx", "app", "push", "--no-start"])
+check_call(["ibmcloud", "app", "push", "--no-start"])
 
 # For each domain, map a route for the specific letsencrypt check path
 # '/.well-known/acme-challenge/'
@@ -71,17 +71,17 @@ for entry in settings['domains']:
     domain = entry['domain']
     for host in entry['hosts']:
         if host == '.':
-            call(["bx", "cf", "map-route", appname, domain, "--path", ".well-known/acme-challenge/"])
+            call(["ibmcloud", "cf", "map-route", appname, domain, "--path", ".well-known/acme-challenge/"])
         else:
-            call(["bx", "cf", "map-route", appname, domain, "--hostname", host, "--path", ".well-known/acme-challenge/"])
+            call(["ibmcloud", "cf", "map-route", appname, domain, "--hostname", host, "--path", ".well-known/acme-challenge/"])
 
 # Now the app can be started
-check_call(["bx", "app", "start", appname])
+check_call(["ibmcloud", "app", "start", appname])
 
 # Tail the application log
 print("Parsing log files.")
 end_token = "cf stop %s" % appname  # Seeing this in the log means certs done
-log_pipe = Popen("bx cf logs %s --recent" % appname, shell=True,
+log_pipe = Popen("ibmcloud cf logs %s --recent" % appname, shell=True,
                  stdout=PIPE, stderr=PIPE)
 log_lines = str(log_pipe.stdout.readlines())
 
@@ -94,7 +94,7 @@ while end_token not in ''.join(log_lines)\
     print("Certs not ready yet, retrying in 5 seconds.")
     time.sleep(5)
     seconds_waited = seconds_waited + 5
-    log_pipe = Popen("bx cf logs %s --recent" % appname, shell=True,
+    log_pipe = Popen("ibmcloud cf logs %s --recent" % appname, shell=True,
                      stdout=PIPE, stderr=PIPE)
     log_lines = str(log_pipe.stdout.readlines())
 
@@ -103,7 +103,7 @@ if seconds_waited >= MAX_WAIT_SECONDS:
     print("\n\nIt has been %d minutes without seeing certificates issued"
           % (MAX_WAIT_SECONDS/60)
           + " in the log. Something probably went wrong. Please check"
-          + " the output of `bx cf logs %s --recent`" % appname
+          + " the output of `ibmcloud cf logs %s --recent`" % appname
           + " for more information.\n\nExiting.")
     sys.exit(1)
 
@@ -136,21 +136,21 @@ if domain_has_ssl(primary_domain, domain_with_first_host, True):
           + " This means that your application will have a window of time"
           + " without a certificate.\n")
     print("If you wish to continue, run:\n"
-          + ("bx app domain-cert-remove %s; " % primary_domain)
-          + ("bx app domain-cert-add %s -c cert.pem -k privkey.pem -i chain.pem; "
+          + ("ibmcloud app domain-cert-remove %s; " % primary_domain)
+          + ("ibmcloud app domain-cert-add %s -c cert.pem -k privkey.pem -i chain.pem; "
              % primary_domain)
-          + ("bx app domain-cert %s\n" % primary_domain))
+          + ("ibmcloud app domain-cert %s\n" % primary_domain))
     sys.exit(1)
 
 # Kill the letsencrypt app now that its work is done
-call(["bx", "app", "stop", appname])
+call(["ibmcloud", "app", "stop", appname])
 
 failure = True
 count = 0
 while(failure and count < 3):
     # Upload new cert
     print("Attempting certificate upload...")
-    call("bx app domain-cert-add %s -c cert.pem -k privkey.pem -i chain.pem"
+    call("ibmcloud app domain-cert-add %s -c cert.pem -k privkey.pem -i chain.pem"
          % primary_domain, shell=True)
     failure = not domain_has_ssl(primary_domain, domain_with_first_host, True)
     count = count + 1
