@@ -20,7 +20,7 @@ OPTIONS:
    --path           Path for the route
 ```
 
-Firstly you must have the [Bluemix CLI](https://console.bluemix.net/docs/cli/reference/bluemix_cli/get_started.html) installed, custom domains created, DNS configured, and know your cloud foundry org and space.
+Firstly you must have the [IBM Cloud CLI](https://cloud.ibm.com/docs/cli?topic=cloud-cli-install-ibmcloud-cli) installed, custom domains created, DNS configured, and know your cloud foundry org and space.
 
 Once ready:
 
@@ -33,7 +33,7 @@ Once ready:
    Each [host].[domain] combination will become a separate DNS name in the SAN field of the requested certificate. Set the first host value to '.' to set the Subject Common Name to the name of the domain.
 
    Note: During testing, please set `staging` to `true` in order to keep load off the production Let's Encrypt environment and reduce the chance of hitting their rate limits (https://letsencrypt.org/docs/staging-environment/).
-4. Log in to Bluemix (e.g. `bx login`), set your target org and space (e.g. `bx target --cf -o your_org -s dev`), and finally run `python setup-app.py`. It will:
+4. Log in to the IBM Cloud (e.g. `ibmcloud login`), set your target org and space (e.g. `ibmcloud target --cf -o your_org -s dev`), and finally run `python setup-app.py`. It will:
    1. push the cf-letsencrypt application
    2. map the routes needed for Let's Encrypt to verify that you own the domain
    3. initiate and complete the Let's Encrypt ACME protocol for obtaining a certificate
