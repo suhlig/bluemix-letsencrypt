@@ -16,8 +16,9 @@ def domain_has_ssl(domain, full_host, print_info=False):
     The print_info parameter can be used to dump the certificate information
     from Bluemix to stdout.
     """
-    pipe = Popen("ibmcloud app domain-cert %s" % domain,
-                 stdout=PIPE, shell=True)
+    print("Checking weather %s already has a certificate assigned..." % primary_domain)
+
+    pipe = Popen("ibmcloud app domain-cert %s" % domain, stdout=PIPE, shell=True)
     output = pipe.stdout.read().decode("unicode_escape")
     cert_exists = "OK" in output
     if print_info and cert_exists:
@@ -30,7 +31,7 @@ def get_cert(appname, domain, certname):
     It then writes the certificate to a file in the current working
     directory with the same name that the certificate had on the server.
     """
-    command = "ibmcloud --quiet cf ssh %s -c \"cat ~/app/conf/live/%s/%s\"" % (appname, domain, certname)
+    command = "ibmcloud cf ssh %s -c \"cat ~/app/conf/live/%s/%s\"" % (appname, domain, certname)
     print("Running: %s" % command)
     certfile = open(certname,"w+")
     return Popen(command, shell=True, stdout=certfile)
@@ -109,27 +110,22 @@ if seconds_waited >= MAX_WAIT_SECONDS:
 
 # Figure out which domain name to look for
 primary_domain = settings['domains'][0]['domain']
-
-domain_with_first_host = "%s.%s" % (settings['domains'][0]['hosts'][0],
-                                    primary_domain)
+domain_with_first_host = "%s.%s" % (settings['domains'][0]['hosts'][0], primary_domain)
 
 # Hostname is sometimes '.', which requires special handling
 if domain_with_first_host.startswith('..'):
     domain_with_first_host = domain_with_first_host[2:]
 
-print("\nWaiting for container to mount filesystem")
-time.sleep(5)
-
-cert1Proc = get_cert(appname, domain_with_first_host, 'cert.pem')
-cert2Proc = get_cert(appname, domain_with_first_host, 'chain.pem')
-cert3Proc = get_cert(appname, domain_with_first_host, 'fullchain.pem')
-cert4Proc = get_cert(appname, domain_with_first_host, 'privkey.pem')
-
-# wait for get_cert subprocesses to finish
-cert1Proc.wait()
-cert2Proc.wait()
-cert3Proc.wait()
-cert4Proc.wait()
+# Retrieve the certs from the letsencrypt app container
+for cert in ["cert", "chain", "privkey"]:
+  seconds_waited = 0
+  MAX_WAIT_SECONDS = 60
+  while get_cert(appname, domain_with_first_host, "%s.pem" % cert).wait() != 0:
+      if seconds_waited >= MAX_WAIT_SECONDS:
+        print("ERROR: Failed to retrieve %s" % cert)
+        sys.exit(1)
+      time.sleep(5)
+      seconds_waited = seconds_waited + 5
 
 # Check if there is already an SSL in place
 if domain_has_ssl(primary_domain, domain_with_first_host, True):
@@ -153,8 +149,7 @@ count = 0
 while(failure and count < 3):
     # Upload new cert
     print("Attempting certificate upload...")
-    call("ibmcloud app domain-cert-add %s -c cert.pem -k privkey.pem -i chain.pem"
-         % primary_domain, shell=True)
+    call("ibmcloud app domain-cert-add %s --cert cert.pem --key privkey.pem --intermediate-cert chain.pem" % primary_domain, shell=True)
     failure = not domain_has_ssl(primary_domain, domain_with_first_host, True)
     count = count + 1
     time.sleep(5)
